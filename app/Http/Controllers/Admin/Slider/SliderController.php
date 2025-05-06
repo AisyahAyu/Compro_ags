@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers\Admin\Slider;
-
 
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
@@ -10,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Slider;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\DB;
 
 class SliderController extends Controller
 {
@@ -26,71 +24,95 @@ class SliderController extends Controller
     {
         $activities = Activity::all(); // Retrieve all activities
         $routes = [
-            // Define your predefined routes here
             'home' => route('home'),
             'about' => route('about'),
-            // Add other predefined routes as needed
         ];
-    
+
         $metas = Meta::where('start_date', '<=', today())
                      ->where('end_date', '>=', today())
                      ->get();
-    
+
         return view('Admin.Slider.create', compact('activities', 'routes', 'metas'));
     }
-    
 
-    // Store new slider
+    // Store new slider - DENGAN VERSI RAW INSERT
     public function store(Request $request)
     {
-        $request->validate([
-            'image_url' => 'required|image',
-            'title' => 'required|string|max:255',
-            'title_color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
-            'description' => 'required|string',
-            'description_color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
-            'button_text' => 'required|string|max:255',
-            'button_url' => 'required|string|url', // Pastikan URL yang valid
-        ]);
-        
+        try {
+            \Log::debug('Request data for slider creation: ', $request->all());
+            
+            $request->validate([
+                'image_url' => 'required|image',
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+            ]);
 
-        // Save image to public/uploads/slider
-        $image = $request->file('image_url');
-        $imageName = time() . '_' . $image->getClientOriginalName();
-        $image->move(public_path('uploads/slider'), $imageName);
-        $imagePath = 'uploads/slider/' . $imageName;
+            // Save image to public/assets/img/slider
+            $image = $request->file('image_url');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('assets/img/slider'), $imageName);
+            $imagePath = 'assets/img/slider/' . $imageName;
 
-        // Determine if the button URL comes from a pre-defined route or an activity
-        if ($request->filled('activity_id')) {
-            $activity = Activity::find($request->activity_id);
-            $buttonUrl = route('activity.show', $activity->id);
-        } elseif ($request->filled('meta_slug')) {
-            // Use the meta_slug to get the URL for meta data
-            $meta = Meta::where('slug', $request->meta_slug)->firstOrFail();
-            $buttonUrl = route('member.meta.show', $meta->slug);
-        } else {
-            $buttonUrl = $request->button_url;
+            // Tentukan kondisi checkbox
+            $show_specification = $request->has('show_specification') ? 1 : 0;
+            $show_button = $request->has('show_button') ? 1 : 0;
+            
+            $data = [
+                'image_url' => $imagePath,
+                'title' => $request->title,
+                'title_color' => $request->title_color ?? '#000000',
+                'description' => $request->description,
+                'description_color' => $request->description_color ?? '#000000',
+                'show_specification' => $show_specification,
+                'show_button' => $show_button,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+            
+            if ($show_specification) {
+                $data['specification_text'] = $request->specification_text;
+                $data['specification_color'] = $request->specification_color ?? '#000000';
+                $data['line_color'] = $request->line_color ?? '#dddddd';
+            } else {
+                $data['specification_text'] = null;
+                $data['specification_color'] = null;
+                $data['line_color'] = null;
+            }
+            
+            if ($show_button) {
+                if (empty($request->button_text) || empty($request->button_url)) {
+                    return redirect()->back()->with('error', 'Jika tampilkan button dicentang, text dan URL button harus diisi.')->withInput();
+                }
+                
+                $data['button_text'] = $request->button_text;
+                $data['button_url'] = $request->button_url;
+                $data['button_text_color'] = $request->button_text_color ?? '#FFFFFF';
+            } else {
+                $data['button_text'] = null;
+                $data['button_url'] = null;
+                $data['button_text_color'] = null;
+            }
+            
+            \Log::debug('Slider to be saved: ', $data);
+            
+            DB::table('sliders')->insert($data);
+            
+            return redirect()->route('admin.slider.index')->with('success', 'Slider berhasil dibuat!');
+        } catch (\Exception $e) {
+            \Log::error('Error creating slider: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage())->withInput();
         }
-        Slider::create([
-            'image_url' => $imagePath,
-            'title' => $request->title,
-            'title_color' => $request->title_color,
-            'description' => $request->description,
-            'description_color' => $request->description_color,
-            'button_text' => $request->button_text,
-            'button_url' => $buttonUrl, // Dynamic button URL
-        ]);
-        
-
-        return redirect()->route('admin.slider.index')->with('success', 'Slider created successfully.');
     }
 
     // Show form to edit an existing slider
     public function edit($id)
     {
         $slider = Slider::findOrFail($id);
-        $activities = Activity::all(); // Fetch activities for editing
+        $activities = Activity::all();
         $routes = [
+            'home' => route('home'),
             'about' => route('about'),
             'product' => route('product.index'),
             'portal' => route('portal'),
@@ -100,69 +122,102 @@ class SliderController extends Controller
                      ->where('end_date', '>=', today())
                      ->get();
 
-        return view('Admin.Slider.edit', compact('slider', 'routes', 'activities','metas'));
+        return view('Admin.Slider.edit', compact('slider', 'routes', 'activities', 'metas'));
     }
 
-    // Update slider
+    // Update slider - DENGAN VERSI RAW UPDATE
     public function update(Request $request, $id)
     {
-        $slider = Slider::findOrFail($id);
-        $request->validate([
-            'image_url' => 'nullable|image',
-            'title' => 'required|string|max:255',
-            'title_color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
-            'description' => 'required|string',
-            'description_color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
-            'button_text' => 'required|string|max:255',
-            'button_url' => 'required|string|url', // Pastikan URL yang valid
-        ]);
-        
+        try {
+            \Log::debug('Request data for slider update: ', $request->all());
+            
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+            ]);
 
-        if ($request->hasFile('image_url')) {
-            // Delete the old image
-            if (File::exists(public_path($slider->image_url))) {
-                File::delete(public_path($slider->image_url));
+            $slider = Slider::findOrFail($id);
+            
+            $data = [
+                'title' => $request->title,
+                'title_color' => $request->title_color ?? '#000000',
+                'description' => $request->description,
+                'description_color' => $request->description_color ?? '#000000',
+                'updated_at' => now(),
+            ];
+            
+            if ($request->hasFile('image_url')) {
+                if (File::exists(public_path($slider->image_url))) {
+                    File::delete(public_path($slider->image_url));
+                }
+
+                $image = $request->file('image_url');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->move(public_path('assets/img/slider'), $imageName);
+                $data['image_url'] = 'assets/img/slider/' . $imageName;
             }
-
-            // Save new image to public/uploads/slider
-            $image = $request->file('image_url');
-            $imageName = time() . '_' . $image->getClientOriginalName();
-            $image->move(public_path('uploads/slider'), $imageName);
-            $slider->image_url = 'uploads/slider/' . $imageName;
+            
+            $show_specification = $request->has('show_specification') ? 1 : 0;
+            $show_button = $request->has('show_button') ? 1 : 0;
+            
+            $data['show_specification'] = $show_specification;
+            $data['show_button'] = $show_button;
+            
+            if ($show_specification) {
+                $data['specification_text'] = $request->specification_text;
+                $data['specification_color'] = $request->specification_color ?? '#000000';
+                $data['line_color'] = $request->line_color ?? '#dddddd';
+            } else {
+                $data['specification_text'] = null;
+                $data['specification_color'] = null;
+                $data['line_color'] = null;
+            }
+            
+            if ($show_button) {
+                if (empty($request->button_text) || empty($request->button_url)) {
+                    return redirect()->back()->with('error', 'Jika tampilkan button dicentang, text dan URL button harus diisi.')->withInput();
+                }
+                
+                $data['button_text'] = $request->button_text;
+                $data['button_url'] = $request->button_url;
+                $data['button_text_color'] = $request->button_text_color ?? '#FFFFFF';
+            } else {
+                $data['button_text'] = null;
+                $data['button_url'] = null;
+                $data['button_text_color'] = null;
+            }
+            
+            \Log::debug('Slider to be updated: ', $data);
+            
+            DB::table('sliders')->where('id', $id)->update($data);
+            
+            return redirect()->route('admin.slider.index')->with('success', 'Slider berhasil diperbarui!');
+        } catch (\Exception $e) {
+            \Log::error('Error updating slider: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage())->withInput();
         }
-
-        // Dynamic button URL handling
-        if ($request->filled('activity_id')) {
-            $activity = Activity::find($request->activity_id);
-            $slider->button_url = route('activity.show', $activity->id);
-        } else {
-            $slider->button_url = $request->button_url;
-        }
-
-        $slider->title = $request->title;
-        $slider->title_color = $request->title_color;
-        $slider->description = $request->description;
-        $slider->description_color = $request->description_color;
-        $slider->button_text = $request->button_text;
-        $slider->button_url = $request->button_url;
-        $slider->save();
-
-
-        return redirect()->route('admin.slider.index')->with('success', 'Slider updated successfully.');
     }
 
     // Delete slider
     public function destroy($id)
     {
-        $slider = Slider::findOrFail($id);
+        try {
+            $slider = Slider::findOrFail($id);
 
-        // Delete the image file
-        if (File::exists(public_path($slider->image_url))) {
-            File::delete(public_path($slider->image_url));
+            if (File::exists(public_path($slider->image_url))) {
+                File::delete(public_path($slider->image_url));
+            }
+
+            $slider->delete();
+
+            return redirect()->route('admin.slider.index')->with('success', 'Slider berhasil dihapus!');
+        } catch (\Exception $e) {
+            \Log::error('Error deleting slider: ' . $e->getMessage());
+            
+            return redirect()->route('admin.slider.index')->with('error', 'Error menghapus slider: ' . $e->getMessage());
         }
-
-        $slider->delete();
-
-        return redirect()->route('admin.slider.index')->with('success', 'Slider deleted successfully.');
     }
 }
+?>

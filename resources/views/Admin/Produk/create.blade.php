@@ -98,17 +98,17 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="kategori_id">Kategori :</label>
-                                                <select name="kategori_id" class="form-control" required>
-                                                    @foreach ($kategori as $kategoris)
-                                                        <option value="{{ $kategoris->id }}" {{ old('kategori_id') == $kategoris->id ? 'selected' : '' }}>
-                                                            {{ $kategoris->nama }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div>
+        <div class="form-group">
+            <label for="sub_kategori_id">Sub Kategori :</label>
+            <select name="sub_kategori_id" class="form-control" required>
+                @foreach ($subKategori as $subKategoris)
+                    <option value="{{ $subKategoris->id }}" {{ old('sub_kategori_id') == $subKategoris->id ? 'selected' : '' }}>
+                        {{ $subKategoris->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+    </div>
                                     </div>
 
                                     <div class="form-group">

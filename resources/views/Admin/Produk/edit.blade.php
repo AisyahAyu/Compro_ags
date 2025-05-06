@@ -43,24 +43,34 @@
                             <!-- General Tab -->
                             <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
                                 <div class="card p-3 mb-4">
-                                    <div class="form-group mb-3">
-                                        <label for="nama">Nama Produk :</label>
-                                        <input type="text" name="nama" class="form-control" value="{{ old('nama', $produk->nama) }}" required>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="nama">Nama Produk :</label>
+                                                <input type="text" name="nama" class="form-control" value="{{ old('nama', $produk->nama) }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="merk">Merk Produk :</label>
+                                                <input type="text" name="merk" class="form-control" value="{{ old('merk', $produk->merk) }}" required>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="form-group mb-3">
-                                        <label for="merk">Merk Produk :</label>
-                                        <input type="text" name="merk" class="form-control" value="{{ old('merk', $produk->merk) }}" required>
-                                    </div>
-
-                                    <div class="form-group mb-3">
-                                        <label for="tipe">Tipe Produk :</label>
-                                        <input type="text" name="tipe" class="form-control" value="{{ old('tipe', $produk->tipe) }}" required>
-                                    </div>
-
-                                    <div class="form-group mb-3">
-                                        <label for="link">Link E-Katalog Produk :</label>
-                                        <input type="text" name="link" class="form-control" value="{{ old('link', $produk->link) }}" required>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="tipe">Tipe Produk :</label>
+                                                <input type="text" name="tipe" class="form-control" value="{{ old('tipe', $produk->tipe) }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="link">Link E-Katalog Produk :</label>
+                                                <input type="text" name="link" class="form-control" value="{{ old('link', $produk->link) }}" required>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="form-group mb-3">
@@ -78,23 +88,28 @@
                                         <textarea name="spesifikasi" class="form-control" required>{{ old('spesifikasi', $produk->spesifikasi) }}</textarea>
                                     </div>
 
-                                    <div class="form-group mb-3">
-                                        <label for="via">Via :</label>
-                                        <select name="via" class="form-control" required>
-                                            <option value="labtek" {{ old('via', $produk->via) == 'labtek' ? 'selected' : '' }}>Labtek</option>
-                                            <option value="labverse" {{ old('via', $produk->via) == 'labverse' ? 'selected' : '' }}>Labverse</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group mb-3">
-                                        <label for="kategori_id">Kategori :</label>
-                                        <select name="kategori_id" class="form-control" required>
-                                            @foreach ($kategori as $kategoris)
-                                                <option value="{{ $kategoris->id }}" {{ old('kategori_id', $produk->kategori_id) == $kategoris->id ? 'selected' : '' }}>
-                                                    {{ $kategoris->nama }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="via">Via :</label>
+                                                <select name="via" class="form-control" required>
+                                                    <option value="labtek" {{ old('via', $produk->via) == 'labtek' ? 'selected' : '' }}>Labtek</option>
+                                                    <option value="labverse" {{ old('via', $produk->via) == 'labverse' ? 'selected' : '' }}>Labverse</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="sub_kategori_id">Sub Kategori :</label>
+                                                <select name="sub_kategori_id" class="form-control" required>
+                                                    @foreach ($subKategori as $subKategoris)
+                                                        <option value="{{ $subKategoris->id }}" {{ old('sub_kategori_id', $produk->sub_kategori_id) == $subKategoris->id ? 'selected' : '' }}>
+                                                            {{ $subKategoris->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="form-group mb-3">

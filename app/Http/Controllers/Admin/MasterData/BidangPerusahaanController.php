@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\MasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\BidangPerusahaan;
+use App\Models\Kategori;
 use Illuminate\Http\Request;
 
 class BidangPerusahaanController extends Controller
@@ -13,7 +14,7 @@ class BidangPerusahaanController extends Controller
      */
     public function index()
     {
-        $bidangPerusahaans = BidangPerusahaan::all();
+        $bidangPerusahaans = BidangPerusahaan::with('kategori')->get();
         return view('Admin.MasterData.bidang.index', compact('bidangPerusahaans'));
     }
 
@@ -22,7 +23,8 @@ class BidangPerusahaanController extends Controller
      */
     public function create()
     {
-        return view('Admin.MasterData.bidang.create');
+        $kategoris = Kategori::all();
+        return view('Admin.MasterData.bidang.create', compact('kategoris'));
     }
 
     /**
@@ -32,11 +34,15 @@ class BidangPerusahaanController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'kategori_id' => 'required|exists:kategori,id',
         ]);
 
-        BidangPerusahaan::create($request->all());
+        BidangPerusahaan::create([
+            'name' => $request->name,
+            'kategori_id' => $request->kategori_id,
+        ]);
 
-        return redirect()->route('bidangperusahaan.index')  // Perubahan di sini
+        return redirect()->route('bidangperusahaan.index')
             ->with('success', 'Bidang Perusahaan created successfully.');
     }
 
@@ -45,10 +51,8 @@ class BidangPerusahaanController extends Controller
      */
     public function show(string $id)
     {
-        $bidang = BidangPerusahaan::findOrFail($id);
-
+        $bidang = BidangPerusahaan::with('kategori')->findOrFail($id);
         return view('Admin.MasterData.bidang.show', compact('bidang'));
-
     }
 
     /**
@@ -57,7 +61,8 @@ class BidangPerusahaanController extends Controller
     public function edit(string $id)
     {
         $bidang = BidangPerusahaan::findOrFail($id);
-        return view('Admin.MasterData.bidang.edit', compact('bidang'));
+        $kategoris = Kategori::all();
+        return view('Admin.MasterData.bidang.edit', compact('bidang', 'kategoris'));
     }
 
     /**
@@ -67,12 +72,16 @@ class BidangPerusahaanController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'kategori_id' => 'required|exists:kategori,id',
         ]);
 
         $bidangPerusahaan = BidangPerusahaan::findOrFail($id);
-        $bidangPerusahaan->update($request->all());
+        $bidangPerusahaan->update([
+            'name' => $request->name,
+            'kategori_id' => $request->kategori_id,
+        ]);
 
-        return redirect()->route('admin.masterdata.index')
+        return redirect()->route('bidangperusahaan.index')
             ->with('success', 'Bidang Perusahaan updated successfully.');
     }
 
@@ -87,5 +96,4 @@ class BidangPerusahaanController extends Controller
         return redirect()->route('bidangperusahaan.index')
             ->with('success', 'Bidang Perusahaan deleted successfully.');
     }
-
 }

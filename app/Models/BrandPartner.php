@@ -18,5 +18,21 @@ class BrandPartner extends Model
         'url',
         'nama',
     ];
-
+    
+    // Tambahkan casting untuk type
+    protected $casts = [
+        'type' => 'string',
+    ];
+    
+    // Mutator untuk memastikan nilai type disimpan dengan benar
+    public function setTypeAttribute($value)
+    {
+        $this->attributes['type'] = trim(strval($value));
+    }
+    
+    // Mutator untuk memastikan nilai gambar disimpan dengan benar
+    public function setGambarAttribute($value)
+    {
+        $this->attributes['gambar'] = trim(strval($value));
+    }
 }

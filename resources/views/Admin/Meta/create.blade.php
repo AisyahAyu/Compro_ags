@@ -9,7 +9,7 @@
                         <h4 class="mb-0">Tambah Meta Baru</h4>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('admin.meta.store') }}" method="POST">
+                        <form action="{{ route('admin.meta.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
 
                             <div class="form-group">
@@ -18,13 +18,13 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="type" class="font-weight-bold">Tipe</label>
-                                <select name="type" class="form-control" required>
-                                    <option value="pengumuman">Pengumuman</option>
-                                    <option value="promosi">Promosi</option>
-                                </select>
+                                <label for="image" class="font-weight-bold">Gambar</label>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="image" name="image" accept="image/*">
+                                    <label class="custom-file-label" for="image">Pilih gambar...</label>
+                                </div>
+                                <small class="form-text text-muted">Format yang diizinkan: JPG, JPEG, PNG. Maksimal 2MB.</small>
                             </div>
-
 
                             <div class="row">
                                 <div class="form-group col-md-6">
@@ -38,33 +38,6 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="content" class="font-weight-bold">Konten</label>
-                                <textarea id="froala-editor" name="content"></textarea>
-                            </div>
-
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    new FroalaEditor('#froala-editor', {
-                                        imageUploadURL: '{{ route('froala.upload_image') }}',  // Rute untuk upload gambar
-                                        imageUploadParams: {
-                                            _token: '{{ csrf_token() }}'  // Token CSRF untuk keamanan
-                                        },
-                                        toolbarButtons: [
-                                            'bold', 'italic', 'underline', 'strikeThrough', 'align', 'formatOL', 'formatUL',
-                                            'insertLink', 'insertImage', 'insertVideo', 'insertTable', 'html', 'undo', 'redo',
-                                            'paragraphFormat', 'paragraphStyle', 'quote', 'fontFamily', 'fontSize',
-                                            'textColor', 'backgroundColor', 'inlineStyle', 'subscript', 'superscript',
-                                            'outdent', 'indent', 'clearFormatting', 'insertHR', 'fullscreen'
-                                        ],
-                                        heightMin: 300,
-                                        heightMax: 500,
-                                        imageAllowedTypes: ['jpeg', 'jpg', 'png', 'gif'],
-                                    });
-
-                                });
-                            </script>
-
                             <div class="form-group text-right">
                                 <button type="submit" class="btn btn-primary px-4 py-2 shadow-sm">Simpan Meta</button>
                             </div>
@@ -76,5 +49,13 @@
     </div>
 @endsection
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/4.0.12/css/froala_editor.pkgd.min.css" rel="stylesheet" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/4.0.12/js/froala_editor.pkgd.min.js"></script>
+@section('scripts')
+<script>
+    // Script untuk menampilkan nama file yang dipilih pada label
+    document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+        var fileName = e.target.files[0].name;
+        var nextSibling = e.target.nextElementSibling;
+        nextSibling.innerText = fileName;
+    });
+</script>
+@endsection

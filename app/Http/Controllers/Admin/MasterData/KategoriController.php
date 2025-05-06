@@ -32,11 +32,29 @@ class KategoriController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:255',
+            'icon_default' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'icon_hover' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'url' => 'nullable|url',
         ]);
 
+        $iconDefaultPath = null;
+        $iconHoverPath = null;
+
+        if ($request->hasFile('icon_default')) {
+            $iconDefaultPath = 'assets/img/iconcategory/default/' . time() . '_' . $request->file('icon_default')->getClientOriginalName();
+            $request->file('icon_default')->move(public_path('assets/img/iconcategory/default'), $iconDefaultPath);
+        }
+
+        if ($request->hasFile('icon_hover')) {
+            $iconHoverPath = 'assets/img/iconcategory/hover/' . time() . '_' . $request->file('icon_hover')->getClientOriginalName();
+            $request->file('icon_hover')->move(public_path('assets/img/iconcategory/hover'), $iconHoverPath);
+        }
 
         Kategori::create([
             'nama' => $request->nama,
+            'icon_default' => $iconDefaultPath,
+            'icon_hover' => $iconHoverPath,
+            'url' => $request->url,
         ]);
 
         return redirect()->route('admin.kategori.index')->with('success', 'Kategori created successfully.');
@@ -47,7 +65,8 @@ class KategoriController extends Controller
      */
     public function show(string $id)
     {
-        
+        $kategori = Kategori::findOrFail($id);
+        return view('Admin.MasterData.kategori.show', compact('kategori'));
     }
 
     /**
@@ -63,20 +82,38 @@ class KategoriController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, $id)
-{
-    $request->validate([
-        'nama' => 'required|string|max:255',
-    ]);
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'icon_default' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'icon_hover' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'url' => 'nullable|url',
+        ]);
 
-    $kategori = Kategori::findOrFail($id);
+        $kategori = Kategori::findOrFail($id);
 
+        if ($request->hasFile('icon_default')) {
+            if ($kategori->icon_default && file_exists(public_path($kategori->icon_default))) {
+                unlink(public_path($kategori->icon_default));
+            }
+            $kategori->icon_default = 'assets/img/iconcategory/default/' . time() . '_' . $request->file('icon_default')->getClientOriginalName();
+            $request->file('icon_default')->move(public_path('assets/img/iconcategory/default'), $kategori->icon_default);
+        }
 
-    $kategori->nama = $request->nama;
-    $kategori->save();
+        if ($request->hasFile('icon_hover')) {
+            if ($kategori->icon_hover && file_exists(public_path($kategori->icon_hover))) {
+                unlink(public_path($kategori->icon_hover));
+            }
+            $kategori->icon_hover = 'assets/img/iconcategory/hover/' . time() . '_' . $request->file('icon_hover')->getClientOriginalName();
+            $request->file('icon_hover')->move(public_path('assets/img/iconcategory/hover'), $kategori->icon_hover);
+        }
 
-    return redirect()->route('admin.kategori.index')->with('success', 'Kategori updated successfully.');
-}
+        $kategori->nama = $request->nama;
+        $kategori->url = $request->url;
+        $kategori->save();
 
+        return redirect()->route('admin.kategori.index')->with('success', 'Kategori updated successfully.');
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -84,16 +121,17 @@ class KategoriController extends Controller
     public function destroy($id)
     {
         $kategori = Kategori::findOrFail($id);
-    
-        // Hapus gambar jika ada
-        if ($kategori->gambar && file_exists(public_path($kategori->gambar))) {
-            unlink(public_path($kategori->gambar));
+
+        if ($kategori->icon_default && file_exists(public_path($kategori->icon_default))) {
+            unlink(public_path($kategori->icon_default));
         }
-    
-        // Hapus data kategori
+
+        if ($kategori->icon_hover && file_exists(public_path($kategori->icon_hover))) {
+            unlink(public_path($kategori->icon_hover));
+        }
+
         $kategori->delete();
-    
+
         return redirect()->route('admin.kategori.index')->with('success', 'Kategori deleted successfully.');
     }
-    
 }

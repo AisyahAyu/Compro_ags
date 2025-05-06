@@ -18,7 +18,10 @@ return new class extends Migration
             $table->text('kegunaan');
             $table->string('user_manual')->nullable();
             $table->enum('via', ['labtek', 'labverse']);
-            $table->foreignId('kategori_id')->constrained('kategori')->onDelete('cascade');
+            $table->foreignId('sub_kategori_id')
+            ->nullable() // Make it nullable initially for existing records
+            ->constrained('sub_kategori')
+            ->onDelete('cascade');
             $table->timestamps();
         });
     }

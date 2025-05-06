@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('title');
             $table->string('slug')->unique();
             $table->date('start_date');
-            $table->enum('type', ['pengumuman', 'promosi'])->default('pengumuman'); // ENUM type
             $table->date('end_date');
             $table->longText('content'); // For rich text content
             $table->timestamps();

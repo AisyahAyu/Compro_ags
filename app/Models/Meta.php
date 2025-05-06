@@ -11,8 +11,7 @@ class Meta extends Model
 
     protected $table = 'meta';
 
-
     protected $fillable = [
-        'title', 'slug', 'start_date', 'end_date', 'content', 'type'
+        'title', 'slug', 'start_date', 'end_date', 'image'
     ];
 }

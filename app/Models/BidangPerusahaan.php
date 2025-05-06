@@ -2,23 +2,34 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Schema;
 
 class BidangPerusahaan extends Model
 {
     use HasFactory;
 
-    protected $table = 'bidang_perusahaan';
+    protected $table = 'sub_kategori';
+    
+    protected $fillable = [
+        'name',
+        'kategori_id'
+    ];
 
-    protected $fillable = ['name'];
-
-    /**
-     * Relasi satu ke banyak dengan model User.
-     */
-    public function users()
+    public function kategori()
     {
-        return $this->hasMany(User::class, 'bidang_id');
+        return $this->belongsTo(Kategori::class, 'kategori_id');
+    }
+
+    public function produks()
+    {
+        // If sub_kategori_id exists in produk table, use it
+        if (Schema::hasColumn('produk', 'sub_kategori_id')) {
+            return $this->hasMany(Produk::class, 'sub_kategori_id');
+        }
+        
+        // Fallback to using kategori_id (though this may not be accurate)
+        return $this->hasMany(Produk::class, 'kategori_id', 'kategori_id');
     }
 }

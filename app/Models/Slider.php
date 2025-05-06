@@ -9,15 +9,34 @@ class Slider extends Model
 {
     use HasFactory;
 
-    protected $table = 'sliders';
-
-    // Define the fillable fields
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [
         'image_url',
         'title',
-        'subtitle',
+        'title_color',
         'description',
+        'description_color',
         'button_text',
         'button_url',
+        'button_text_color',
+        'show_specification',
+        'specification_text',
+        'specification_color',
+        'line_color',
+        'show_button'
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'show_specification' => 'boolean',
+        'show_button' => 'boolean',
     ];
 }

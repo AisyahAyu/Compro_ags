@@ -9,7 +9,7 @@
                     <h4 class="mb-0">Edit Meta</h4>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.meta.update', $meta->id) }}" method="POST">
+                    <form action="{{ route('admin.meta.update', $meta->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT') {{-- Metode PUT untuk meng-update data --}}
 
@@ -19,11 +19,19 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="type" class="font-weight-bold">Tipe</label>
-                            <select name="type" class="form-control" required>
-                                <option value="pengumuman" {{ $meta->type == 'pengumuman' ? 'selected' : '' }}>Pengumuman</option>
-                                <option value="promosi" {{ $meta->type == 'promosi' ? 'selected' : '' }}>Promosi</option>
-                            </select>
+                            <label for="image" class="font-weight-bold">Gambar</label>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="image" name="image" accept="image/*">
+                                <label class="custom-file-label" for="image">Pilih gambar...</label>
+                            </div>
+                            <small class="form-text text-muted">Format gambar: JPG, JPEG, PNG, GIF. Maks 5MB.</small>
+                            
+                            @if($meta->image)
+                            <div class="mt-3">
+                                <p>Gambar Saat Ini:</p>
+                                <img src="{{ asset('assets/img/konten/' . $meta->image) }}" class="img-thumbnail" style="max-height: 200px;">
+                            </div>
+                            @endif
                         </div>
 
                         <div class="row">
@@ -37,33 +45,7 @@
                                 <input type="date" name="end_date" class="form-control" value="{{ $meta->end_date }}" required>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            <label for="content" class="font-weight-bold">Konten</label>
-                            <textarea id="froala-editor" name="content">{{ $meta->content }}</textarea>
-                        </div>
-
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                new FroalaEditor('#froala-editor', {
-                                    imageUploadURL: '{{ route('froala.upload_image') }}',  // Rute untuk upload gambar
-                                    imageUploadParams: {
-                                        _token: '{{ csrf_token() }}'  // Token CSRF untuk keamanan
-                                    },
-                                    toolbarButtons: [
-                                        'bold', 'italic', 'underline', 'strikeThrough', 'align', 'formatOL', 'formatUL',
-                                        'insertLink', 'insertImage', 'insertVideo', 'insertTable', 'html', 'undo', 'redo',
-                                        'paragraphFormat', 'paragraphStyle', 'quote', 'fontFamily', 'fontSize',
-                                        'textColor', 'backgroundColor', 'inlineStyle', 'subscript', 'superscript',
-                                        'outdent', 'indent', 'clearFormatting', 'insertHR', 'fullscreen'
-                                    ],
-                                    heightMin: 300,
-                                    heightMax: 500,
-                                    imageAllowedTypes: ['jpeg', 'jpg', 'png', 'gif'],
-                                });
-                            });
-                        </script>
-
+                        
                         <div class="form-group text-right">
                             <button type="submit" class="btn btn-primary px-4 py-2 shadow-sm">Simpan Meta</button>
                         </div>
@@ -73,7 +55,15 @@
         </div>
     </div>
 </div>
-@endsection
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/4.0.12/css/froala_editor.pkgd.min.css" rel="stylesheet" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/4.0.12/js/froala_editor.pkgd.min.js"></script>
+@push('scripts')
+<script>
+    // Script untuk menampilkan nama file saat dipilih
+    document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+        var fileName = e.target.files[0].name;
+        var nextSibling = e.target.nextElementSibling;
+        nextSibling.innerText = fileName;
+    });
+</script>
+@endpush
+@endsection

@@ -22,9 +22,11 @@
                     <div class="form-group mb-3">
                         <label for="type">Tipe</label>
                         <select name="type" class="form-control">
-                            <option value="brand">Merek</option>
-                            <option value="partner">Mitra</option>
-                            <option value="principal">Induk Perusahaan</option>
+                            <option value="">Pilih Tipe</option>
+                            <option value="brand" {{ old('type') == 'brand' ? 'selected' : '' }}>Brand</option>
+                            <option value="principal" {{ old('type') == 'principal' ? 'selected' : '' }}>Principal</option>
+                            <option value="ecommerce" {{ old('type') == 'ecommerce' ? 'selected' : '' }}>Ecommerce</option>
+                            <option value="distributor" {{ old('type') == 'distributor' ? 'selected' : '' }}>Distributor</option>
                         </select>
                         @error('type')
                             <span class="text-danger">{{ $message }}</span>

@@ -16,7 +16,7 @@
                         <label for="gambar">Gambar</label>
                         @if($brandPartner->gambar)
                             <div class="mb-3">
-                                <img src="{{ asset('storage/' . $brandPartner->gambar) }}" alt="Image" class="img-thumbnail" style="max-width: 150px;">
+                                <img src="{{ asset($brandPartner->gambar) }}" alt="Image" class="img-thumbnail" style="max-width: 150px;">
                             </div>
                         @endif
                         <input type="file" name="gambar" class="form-control">
@@ -28,9 +28,11 @@
                     <div class="form-group mb-3">
                         <label for="type">Tipe</label>
                         <select name="type" class="form-control">
-                            <option value="brand" {{ old('type', $brandPartner->type) == 'brand' ? 'selected' : '' }}>Merek</option>
-                            <option value="partner" {{ old('type', $brandPartner->type) == 'partner' ? 'selected' : '' }}>Mitra</option>
-                            <option value="principal" {{ old('type', $brandPartner->type) == 'principal' ? 'selected' : '' }}>Induk Perusahaan</option>
+                            <option value="">Pilih Tipe</option>
+                            <option value="brand" {{ old('type', $brandPartner->type) == 'brand' ? 'selected' : '' }}>Brand</option>
+                            <option value="principal" {{ old('type', $brandPartner->type) == 'principal' ? 'selected' : '' }}>Principal</option>
+                            <option value="ecommerce" {{ old('type', $brandPartner->type) == 'ecommerce' ? 'selected' : '' }}>Ecommerce</option>
+                            <option value="distributor" {{ old('type', $brandPartner->type) == 'distributor' ? 'selected' : '' }}>Distributor</option>
                         </select>
                         @error('type')
                             <span class="text-danger">{{ $message }}</span>

@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Admin\BrandPartner;
 use App\Http\Controllers\Controller;
 use App\Models\BrandPartner;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BrandPartnerController extends Controller
 {
@@ -31,28 +32,64 @@ class BrandPartnerController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'gambar' => 'required|image|max:2048',
-            'type' => 'required|in:brand,partner,principal',
-            'url' => 'nullable|string',
-            'nama' => 'nullable|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'gambar' => 'required|image|max:2048',
+                'type' => 'required|in:brand,principal,ecommerce,distributor',
+                'url' => 'nullable|string',
+                'nama' => 'nullable|string',
+            ]);
 
-        if ($request->hasFile('gambar')) {
-            $image = $request->file('gambar');
+            if ($request->hasFile('gambar')) {
+                $image = $request->file('gambar');
 
-            // Generate nama file unik menggunakan SHA256
-            $hash = hash('sha256', time() . $image->getClientOriginalName());
-            $imageName = $hash . '.' . $image->getClientOriginalExtension();
+                // Generate nama file unik menggunakan SHA256
+                $hash = hash('sha256', time() . $image->getClientOriginalName());
+                $imageName = $hash . '.' . $image->getClientOriginalExtension();
 
-            // Simpan ke dalam storage (public/uploads/brand)
-            $path = $image->storeAs('uploads/brand', $imageName, 'public');
-            $validated['gambar'] = $path;
+                // Tentukan direktori berdasarkan tipe
+                $directoryMap = [
+                    'brand' => 'assets/img/mereklogo/brand',
+                    'principal' => 'assets/img/mereklogo/principal',
+                    'ecommerce' => 'assets/img/mereklogo/ecommerce',
+                    'distributor' => 'assets/img/mereklogo/distributor',
+                ];
+
+                $directory = public_path($directoryMap[$validated['type']]);
+
+                // Pastikan folder ada, jika tidak maka buat folder
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                // Pindahkan file ke folder yang sesuai
+                $image->move($directory, $imageName);
+                
+                // Simpan path relatif ke database
+                $imagePath = $directoryMap[$validated['type']] . '/' . $imageName;
+                
+                // Log data sebelum penyimpanan
+                Log::info('Akan menyimpan data brand partner dengan type: ' . $validated['type']);
+                
+                // Gunakan DB facade langsung untuk menghindari masalah dengan ORM
+                DB::table('brand_partner')->insert([
+                    'gambar' => $imagePath,
+                    'type' => $validated['type'],
+                    'url' => $validated['url'] ?? null,
+                    'nama' => $validated['nama'] ?? null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                
+                return redirect()->route('admin.brand.index')->with('success', 'Brand Partner berhasil ditambahkan.');
+            }
+            
+            return back()->with('error', 'Gambar harus disertakan.')->withInput();
+            
+        } catch (\Exception $e) {
+            Log::error('Error saving brand partner: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
-
-        BrandPartner::create($validated);
-
-        return redirect()->route('admin.brand.index')->with('success', 'Brand Partner berhasil ditambahkan.');
     }
 
     /**
@@ -78,34 +115,76 @@ class BrandPartnerController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $brandPartner = BrandPartner::findOrFail($id);
+        try {
+            $brandPartner = BrandPartner::findOrFail($id);
 
-        $validated = $request->validate([
-            'gambar' => 'nullable|image|max:2048',
-            'type' => 'required|in:brand,partner,principal',
-            'url' => 'nullable|string',
-            'nama' => 'nullable|string',
-        ]);
+            $validated = $request->validate([
+                'gambar' => 'nullable|image|max:2048',
+                'type' => 'required|in:brand,principal,ecommerce,distributor',
+                'url' => 'nullable|string',
+                'nama' => 'nullable|string',
+            ]);
 
-        // Jika ada gambar baru, hapus gambar lama dan simpan yang baru
-        if ($request->hasFile('gambar')) {
-            if ($brandPartner->gambar) {
-                Storage::disk('public')->delete($brandPartner->gambar);
+            // Jika ada gambar baru, hapus gambar lama dan simpan yang baru
+            if ($request->hasFile('gambar')) {
+                // Hapus gambar lama jika ada
+                if ($brandPartner->gambar && file_exists(public_path($brandPartner->gambar))) {
+                    unlink(public_path($brandPartner->gambar));
+                }
+
+                $image = $request->file('gambar');
+                $hash = hash('sha256', time() . $image->getClientOriginalName());
+                $imageName = $hash . '.' . $image->getClientOriginalExtension();
+
+                // Tentukan direktori berdasarkan tipe
+                $directoryMap = [
+                    'brand' => 'assets/img/mereklogo/brand',
+                    'principal' => 'assets/img/mereklogo/principal',
+                    'ecommerce' => 'assets/img/mereklogo/ecommerce',
+                    'distributor' => 'assets/img/mereklogo/distributor',
+                ];
+
+                $directory = public_path($directoryMap[$validated['type']]);
+
+                // Pastikan folder ada, jika tidak maka buat folder
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                // Pindahkan file ke folder yang sesuai
+                $image->move($directory, $imageName);
+
+                // Simpan path relatif ke database
+                $imagePath = $directoryMap[$validated['type']] . '/' . $imageName;
+                
+                // Update data menggunakan query builder
+                DB::table('brand_partner')
+                    ->where('id', $id)
+                    ->update([
+                        'gambar' => $imagePath,
+                        'type' => $validated['type'],
+                        'url' => $validated['url'] ?? $brandPartner->url,
+                        'nama' => $validated['nama'] ?? $brandPartner->nama,
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                // Update tanpa mengubah gambar
+                DB::table('brand_partner')
+                    ->where('id', $id)
+                    ->update([
+                        'type' => $validated['type'],
+                        'url' => $validated['url'] ?? $brandPartner->url,
+                        'nama' => $validated['nama'] ?? $brandPartner->nama,
+                        'updated_at' => now(),
+                    ]);
             }
 
-            $image = $request->file('gambar');
-            $hash = hash('sha256', time() . $image->getClientOriginalName());
-            $imageName = $hash . '.' . $image->getClientOriginalExtension();
-            $path = $image->storeAs('uploads/brand', $imageName, 'public');
-
-            $validated['gambar'] = $path;
-        } else {
-            $validated['gambar'] = $brandPartner->gambar;
+            return redirect()->route('admin.brand.index')->with('success', 'Brand Partner berhasil diperbarui.');
+            
+        } catch (\Exception $e) {
+            Log::error('Error updating brand partner: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
-
-        $brandPartner->update($validated);
-
-        return redirect()->route('admin.brand.index')->with('success', 'Brand Partner berhasil diperbarui.');
     }
 
     /**
@@ -113,14 +192,21 @@ class BrandPartnerController extends Controller
      */
     public function destroy($id)
     {
-        $brandPartner = BrandPartner::findOrFail($id);
+        try {
+            $brandPartner = BrandPartner::findOrFail($id);
 
-        if ($brandPartner->gambar) {
-            Storage::disk('public')->delete($brandPartner->gambar);
+            // Hapus gambar jika ada
+            if ($brandPartner->gambar && file_exists(public_path($brandPartner->gambar))) {
+                unlink(public_path($brandPartner->gambar));
+            }
+
+            $brandPartner->delete();
+
+            return redirect()->route('admin.brand.index')->with('success', 'Brand Partner berhasil dihapus.');
+            
+        } catch (\Exception $e) {
+            Log::error('Error deleting brand partner: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        $brandPartner->delete();
-
-        return redirect()->route('admin.brand.index')->with('success', 'Brand Partner berhasil dihapus.');
     }
 }

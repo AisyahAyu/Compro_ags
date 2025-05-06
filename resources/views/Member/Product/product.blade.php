@@ -1,324 +1,489 @@
 @extends('layouts.Member.master')
 
 @section('content')
+    <!-- Our Product Header Section -->
+    <div class="products-header">
+        <div class="overlay"></div>
+        <div class="header-content">
+            <h1>Our Product.</h1>
+        </div>
+    </div>
 
-<div class="container" style="margin-top: 150px;">
-        <div class="row">
-            <!-- Sidebar Start -->
-            <div class="col-lg-3">
-                <div class="mb-4">
-                    <!-- Header kategori -->
-                    <h4 class="text-dark font-weight-bold d-flex justify-content-left align-items-center"
-                        style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#categoryList">
-                        {{ __('messages.category') }}
-                        <i id="category-icon" class="fas fa-chevron-down ms-2"></i>
-                    </h4>
-
-                    <!-- Daftar kategori -->
-                    <div class="collapse show" id="categoryList">
-                        <ul class="list-group">
-                            @foreach ($kategori->take(10) as $kat)
-                                <li class="list-group-item category-item text-center py-3 mb-2"
-                                    style="background-color: {{ $selectedCategory && $selectedCategory->id == $kat->id ? '#6196FF' : '#f8f9fa' }}; color: {{ $selectedCategory && $selectedCategory->id == $kat->id ? '#fff' : '#000' }};"
-                                    onclick="window.location.href='{{ route('filterByCategory', $kat->id) }}'">
-                                    <strong>{{ $kat->nama }}</strong>
-                                </li>
-                            @endforeach
-                        </ul>
-
-                        <!-- Tombol untuk menampilkan kategori lainnya -->
-                        @if ($kategori->count() > 10)
-                            <button class="btn btn-link w-100 text-center mt-2" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#moreCategories" aria-expanded="false" aria-controls="moreCategories"
-                                onclick="toggleButtonText(this)">
-                                {{ __('messages.show_all_categories') }}
-                            </button>
-
-                            <!-- Kategori selebihnya -->
-                            <div class="collapse" id="moreCategories">
-                                <ul class="list-group mt-2">
-                                    @foreach ($kategori->slice(10) as $kat)
-                                        <li class="list-group-item category-item text-center py-3 mb-2"
-                                            style="background-color: {{ $selectedCategory && $selectedCategory->id == $kat->id ? '#6196FF' : '#f8f9fa' }}; color: {{ $selectedCategory && $selectedCategory->id == $kat->id ? '#fff' : '#000' }};"
-                                            onclick="window.location.href='{{ route('filterByCategory', $kat->id) }}'">
-                                            <strong>{{ $kat->nama }}</strong>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
+    <!-- Product Category Section -->
+    <div class="product-category-section">
+        <div class="category-container">
+            <h2>Product Category.</h2>
+            
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <form action="{{ route('products.search') }}" method="POST">
+                    @csrf
+                    <div class="search-input-group">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" placeholder="Search For Product..." name="search">
                     </div>
-                </div>
+                </form>
             </div>
-            <!-- Sidebar End -->
-
-            <!-- Main Content Start -->
-            <div class="col-lg-9">
-                <div class="d-flex justify-content-between mb-4">
-                    <div class="col-lg-6">
-                        <form method="POST" action="{{ url('products/search') }}" class="d-flex align-items-center">
-                            @csrf
-                            <input type="text" name="keyword" id="find" placeholder="{{ __('messages.search') }}"
-                                class="form-control bg-light shadow-sm" style="border-radius: 10px; padding: 12px;" />
-                            <button type="submit" class="btn btn-primary ms-2 px-4"
-                                style="padding: 12px; border: none; border-radius: 10px; background-color: #6196FF; color: white;">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </form>
-                    </div>
-                    <div class="col-lg-3 mt-n2">
-                        <select id="sort-by" class="form-select border-0 bg-light shadow-sm" style="border-radius: 10px; padding: 12px; margin-left: 20px; margin-right: 20px;">
-                            <option selected>{{ __('messages.sort_by') }}</option>    
-                            <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>{{ __('messages.newest') }}</option>
-                            <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}>{{ __('messages.latest') }}</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Pesan Alert Sukses -->
-                <div id="success-message" class="alert alert-success alert-dismissible fade show" role="alert"
-                    style="display: none;">
-                    <span id="success-text"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-
-
-                <div class="row">
-                    @foreach ($produks as $produk)
-                        <div class="col-md-4 mb-4">
-                            <div class="card product-card shadow-sm"
-                                style="overflow: hidden; transition: transform 0.3s ease; border-radius: 10px; height: 400px;">
-                                <a href="{{ route('product.show', $produk->id) }}">
-                                    <img src="{{ asset($produk->images->first()->gambar ?? 'assets/img/default.jpg') }}"
-                                        class="card-img-top" alt="{{ $produk->nama }}"
-                                        style="object-fit: cover; height: 250px; transition: transform 0.3s ease;">
-                                </a>
-                                <div class="card-body text-center">
-                                    @php
-                                        $name = $produk->nama;
-                                        $limitedName = strlen($name) > 22 ? substr($name, 0, 22) . '..' : $name;
-                                    @endphp
-                                    <h5 class="card-title text-dark font-weight-bold">{{ $limitedName }}</h5>
-                                    <a href="{{ route('product.show', $produk->id) }}"
-                                        class="btn btn-outline-primary rounded-pill px-4 py-2 mt-3"
-                                        style="transition: background-color 0.3s ease; border-color: #6196FF; color:#6196FF;">
-                                        {{ __('messages.show_more') }} →
-                                    </a>
-                                    <!-- Form untuk Distributor -->
-                                    @if (auth()->user() && auth()->user()->type === 'distributor')
-                                        <form action="{{ route('quotations.add_to_cart') }}" method="POST"
-                                            class="d-flex justify-content-center align-items-center add-to-cart-form">
-                                            @csrf
-                                            <input type="hidden" name="produk_id" value="{{ $produk->id }}">
-                                            <input type="number" name="quantity" min="1" value="1"
-                                                class="form-control form-control-sm me-2" style="width: 70px;">
-                                            <button type="submit" class="btn btn-primary btn-sm px-3">Tambah</button>
-                                        </form>
-                                    @endif
-
-
-                                </div>
-                            </div>
+            
+            <!-- Category Grid -->
+            <div class="category-grid">
+                @php
+                    $count = 0;
+                    $totalCategories = count($kategori);
+                @endphp
+                
+                @foreach($kategori as $category)
+                    @php $count++; @endphp
+                    
+                    @if($count <= $totalCategories - 3)
+                    <!-- Top row categories -->
+                    <a href="{{ route('member.product.category', $category->id) }}" class="category-card">
+                        <div class="category-image">
+                            <img src="{{ asset($category->icon_hover) }}" class="category-icon" alt="{{ $category->nama }}">
                         </div>
-                    @endforeach
-                </div>
+                        <div class="category-name">
+                            {{ $category->nama }}
+                        </div>
+                    </a>
+                    @endif
+                @endforeach
             </div>
-            <div class="d-flex justify-content-center mt-4">
-                {{ $produks->onEachSide(2)->links('pagination::bootstrap-4') }}
+            
+            <!-- Bottom Row (Centered) -->
+            <div class="bottom-category-row">
+                @php
+                    $count = 0;
+                @endphp
+                
+                @foreach($kategori as $category)
+                    @php $count++; @endphp
+                    
+                    @if($count > $totalCategories - 3)
+                    <!-- Bottom row categories (last 3) -->
+                    <a href="{{ route('member.product.category', $category->id) }}" class="category-card">
+                        <div class="category-image">
+                            <img src="{{ asset($category->icon_hover) }}" class="category-icon" alt="{{ $category->nama }}">
+                        </div>
+                        <div class="category-name">
+                            {{ $category->nama }}
+                        </div>
+                    </a>
+                    @endif
+                @endforeach
             </div>
         </div>
     </div>
-@endsection
 
-<script>
-    document.getElementById('sort-by').addEventListener('change', function() {
-    const params = new URLSearchParams(window.location.search);
-    params.set('sort', this.value);
-    window.location.search = params.toString();
-});
-</script>
-<script>
-    function toggleButtonText(button) {
-        const showText = '{{ __('messages.show_all_categories') }}';
-        const hideText = '{{ __('messages.show_less_categories') }}';
-
-        if (button.textContent.trim() === showText) {
-            button.textContent = hideText;
-            button.classList.add('btn-danger');
-            button.classList.remove('btn-link');
-        } else {
-            button.textContent = showText;
-            button.classList.add('btn-link');
-            button.classList.remove('btn-danger');
+    <style>
+        /* Header Styles */
+        .products-header {
+            background-image: url('{{ asset('assets/img/header.png') }}');
+            background-size: cover;
+            background-position: center;
+            height: 498px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
-    }
-</script>
-<script>
-    document.querySelectorAll('.add-to-cart-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault(); // Mencegah pengiriman form biasa
+        
+        /* Added transparent black overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .header-content {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .products-header h1 {
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        /* Product Category Section */
+        .product-category-section {
+            padding: 40px 0;
+            background-color: #f5f9fd;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-category-section::before,
+        .product-category-section::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background-color: #e1eaf8;
+            z-index: 0;
+        }
+        
+        .product-category-section::before {
+            left: -250px;
+            top: -100px;
+        }
+        
+        .product-category-section::after {
+            right: -250px;
+            bottom: -100px;
+        }
+        
+        .category-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .category-container h2 {
+            font-size: 40px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        /* Search Bar Styles */
+        .search-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        
+        .search-input-group {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .search-input-group input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+        
+        /* Category Grid Styles */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        /* Bottom Row Styling */
+        .bottom-category-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        /* Category Card Styles */
+        .category-card {
+            width: 236px;
+            height: 333px;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .category-image {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Update all category backgrounds to use header.png */
+        .category-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('{{ asset('assets/img/header.png') }}');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        /* Add dark overlay on top of the background image */
+        .category-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        
+        .category-image img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            position: relative;
+            z-index: 2;
+            margin-bottom: 30px;
+        }
+        
+        .category-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 10px;
+            text-align: center;
+            color: white;
+            font-weight: 500;
+            font-size: 16px;
+            z-index: 2;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .category-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .category-card {
+                width: 100%;
+            }
+            
+            .bottom-category-row {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 
-            const formData = new FormData(this);
-            const url = this.action;
 
-            fetch(url, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Menampilkan pesan sukses di halaman
-                        const successMessage = document.getElementById('success-message');
-                        const successText = document.getElementById('success-text');
-                        successText.textContent = data.message;
-                        successMessage.style.display = 'block';
+<!-- Dynamic approach using the database -->
+<div class="bestseller-section">
+    <div class="bestseller-container">
+        <h2>Best Seller Products.</h2>
+        
+        @php
+            // Assume we have products from database
+            $products = DB::table('produk')->get();
+            $productsChunks = $products->chunk(3); // Split into chunks of 3
+        @endphp
+        
+        @foreach($productsChunks as $chunk)
+            <div class="product-row">
+                @foreach($chunk as $product)
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="{{ asset('assets/img/products/default.jpg') }}" alt="{{ $product->nama }}">
+                            <div class="ags-logo">
+                                <img src="{{ asset('assets/img/ags-logo.png') }}" alt="AGS Logo">
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h3>{{ $product->nama }}</h3>
+                            @if($product->tipe != '-')
+                                <p>{{ $product->tipe }}</p>
+                            @endif
+                            <a href="#" class="read-more-btn">Read More...</a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endforeach
+    </div>
+</div>
 
-                        // Perbarui badge jumlah keranjang jika ada
-                        const cartCount = document.getElementById('cart-count');
-                        if (cartCount) {
-                            cartCount.textContent = parseInt(cartCount.textContent) + parseInt(
-                                formData.get('quantity'));
-                        }
-
-                        // Sembunyikan pesan setelah 3 detik
-                        setTimeout(() => {
-                            successMessage.style.display = 'none';
-                        }, 3000);
-                    } else {
-                        // Menampilkan pesan error
-                        alert(data.message || 'Terjadi kesalahan.');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        });
-    });
-</script>
-
-
-<!-- Additional Custom CSS -->
 <style>
-    .product-card {
-        border-radius: 10px;
-        background-color: #fff;
-        transition: all 0.3s ease-in-out;
+    /* Best Seller Products Section */
+    .bestseller-section {
+        padding: 60px 0;
+        background-color: #f5f9fd;
+        position: relative;
+        overflow: hidden;
     }
-
-    .product-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0px 15px 30px rgba(0, 0, 0, 0.1);
+    
+    .bestseller-section::before,
+    .bestseller-section::after {
+        content: '';
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background-color: #e1eaf8;
+        z-index: 0;
     }
-
-    .product-card img {
-        object-fit: cover;
-        height: 250px;
-        transition: transform 0.3s ease;
+    
+    .bestseller-section::before {
+        left: -250px;
+        top: -100px;
     }
-
-    .product-card:hover img {
-        transform: scale(1.05);
+    
+    .bestseller-section::after {
+        right: -250px;
+        bottom: -100px;
     }
-
-    .btn-outline-primary {
-        border: 2px solid #007bff;
-        color: #007bff;
+    
+    .bestseller-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .bestseller-container h2 {
+        font-size: 40px;
         font-weight: bold;
-        transition: 0.3s ease;
+        text-align: center;
+        margin-bottom: 50px;
     }
-
-    .btn-outline-primary:hover {
-        background-color: #007bff;
-        color: #fff;
-    }
-
-    .pagination {
+    
+    .product-row {
+        display: flex;
         justify-content: center;
-        margin-top: 20px;
+        gap: 30px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
     }
-
-    .pagination .page-item {
-        margin: 0 5px;
+    
+    .product-card {
+        width: 300px;
+        height: 400px;
+        background-color: #ffffff;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
     }
-
-    .pagination .page-link {
-        color: #007bff;
-        border-radius: 10px;
-        padding: 10px 15px;
+    
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .product-image {
+        width: 100%;
+        height: 294px;
+        position: relative;
+        border: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+    }
+    
+    .product-image img {
+        max-width: 100%;
+        max-height: 180px;
+        object-fit: contain;
+    }
+    
+    .ags-logo {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0));
+        padding-top: 20px;
+        padding-bottom: 10px;
+        text-align: center;
+    }
+    
+    .ags-logo img {
+        height: 30px;
+        width: auto;
+    }
+    
+    .product-info {
+        padding: 15px;
+        text-align: center;
+    }
+    
+    .product-info h3 {
         font-size: 16px;
-    }
-
-    .pagination .page-item.active .page-link {
-        background-color: #6196FF;
-        border-color: #6196FF;
-        color: #fff;
-    }
-
-    .pagination .page-item .page-link {
-        border: 1px solid #ddd;
-    }
-
-    @media (max-width: 768px) {
-        .pagination .page-link {
-            padding: 8px 10px;
-            font-size: 14px;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .pagination .page-item {
-            font-size: 12px;
-            margin: 0 3px;
-        }
-
-        .pagination .page-link {
-            padding: 6px 8px;
-            font-size: 12px;
-        }
-    }
-
-    .category-item {
-        cursor: pointer;
-        transition: background-color 0.3s, color 0.3s;
-    }
-
-    .category-item:hover {
-        background-color: #6196FF;
-        color: #fff;
-    }
-
-    #category-icon {
-        transition: transform 0.3s ease;
-    }
-
-    #categoryList {
-        margin-top: 10px;
-    }
-
-    #categoryList .list-group-item {
-        font-size: 14px;
-    }
-
-    .btn-link {
-        color: #6196FF;
-        font-size: 14px;
         font-weight: bold;
+        margin-bottom: 5px;
+        color: #333;
+    }
+    
+    .product-info p {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 15px;
+    }
+    
+    .read-more-btn {
+        display: inline-block;
+        padding: 5px 15px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        color: #333;
         text-decoration: none;
+        font-size: 14px;
+        transition: all 0.3s;
     }
-
-    .btn-link:hover {
-        color: #4576d5;
+    
+    .read-more-btn:hover {
+        background-color: #f0f0f0;
     }
-
-    @media (max-width: 768px) {
-        .category-item {
-            font-size: 12px;
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+        .product-row {
+            gap: 20px;
         }
-
-        #categoryList .list-group-item {
-            padding: 12px;
+        
+        .product-card {
+            width: calc(50% - 20px);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .product-card {
+            width: 100%;
+            max-width: 350px;
         }
     }
 </style>
+@endsection

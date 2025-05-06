@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Doctrine\DBAL\Types\Type;
 
 return new class extends Migration
 {
@@ -11,13 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('brand_partner', function (Blueprint $table) {
-            $table->id();
-            $table->string('gambar'); 
-            $table->enum('type', ['brand', 'partner', 'principal']); 
-            $table->string('url')->nullable(); 
-            $table->string('nama')->nullable(); 
-            $table->timestamps();
+        // Jika masih mengalami masalah dengan kolom type, jalankan migrasi ini
+        // Pastikan package doctrine/dbal sudah diinstall: 
+        // composer require doctrine/dbal
+        
+        Schema::table('brand_partner', function (Blueprint $table) {
+            // Mengubah kolom type dari ENUM menjadi VARCHAR
+            $table->string('type', 20)->change();
         });
     }
 
@@ -26,6 +27,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('brand_partner');
+        Schema::table('brand_partner', function (Blueprint $table) {
+            // Mengembalikan ke ENUM
+            $table->enum('type', ['brand', 'principal', 'distributor', 'ecommerce'])->default('brand')->change();
+        });
     }
 };

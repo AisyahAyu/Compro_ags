@@ -5,7 +5,7 @@
 <div class="container mt-5">
     <div class="card shadow-lg">
         <div class="card-header">
-            <h2 class="h4">Edit Bidang Perusahaan</h2>
+            <h2 class="h4">Edit Sub Kategori</h2>
         </div>
 
         <div class="card-body">
@@ -23,10 +23,24 @@
                 @csrf
                 @method('PUT')
                 <div class="form-group mb-3">
-                    <label for="name">Nama Bidang Perusahaan :</label>
-                    <input type="text" name="name" class="form-control" id="name" value="{{ $bidang->name }}" required>
+                    <label for="name">Nama Bidang Perusahaan:</label>
+                    <input type="text" name="name" class="form-control" id="name" value="{{ old('name', $bidang->name) }}" required>
                 </div>
+                
+                <div class="form-group mb-3">
+                    <label for="kategori_id">Kategori:</label>
+                    <select name="kategori_id" class="form-control" id="kategori_id" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        @foreach($kategoris as $kategori)
+                            <option value="{{ $kategori->id }}" {{ old('kategori_id', $bidang->kategori_id) == $kategori->id ? 'selected' : '' }}>
+                                {{ $kategori->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
                 <button type="submit" class="btn btn-primary">Perbaharui</button>
+                <a href="{{ route('bidangperusahaan.index') }}" class="btn btn-secondary">Kembali</a>
             </form>
         </div>
     </div>

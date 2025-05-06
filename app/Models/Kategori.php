@@ -13,10 +13,21 @@ class Kategori extends Model
 
     protected $fillable = [
         'nama',
+        'icon_default',
+        'icon_hover',
+        'url',
     ];
 
     public function produk()
     {
         return $this->hasMany(Produk::class);
     }
+    /**
+     * Get the sub kategoris for the kategori.
+     */
+    public function bidangPerusahaan()
+    {
+        return $this->hasMany(BidangPerusahaan::class, 'kategori_id');
+    }
 }
+

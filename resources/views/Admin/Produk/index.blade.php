@@ -32,12 +32,12 @@
 
                             <!-- Filter by Kategori -->
                             <div class="col-md-4">
-                                <select name="kategori" class="form-select">
-                                    <option value="">Semua Kategori</option>
-                                    @foreach ($kategori as $kat)
-                                        <option value="{{ $kat->id }}" 
-                                            {{ request()->input('kategori') == $kat->id ? 'selected' : '' }}>
-                                            {{ $kat->nama }}
+                                <select name="sub_kategori" class="form-select">
+                                    <option value="">Semua Sub Kategori</option>
+                                    @foreach ($subKategori as $subKat)
+                                        <option value="{{ $subKat->id }}" 
+                                            {{ request()->input('sub_kategori') == $subKat->id ? 'selected' : '' }}>
+                                            {{ $subKat->name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -59,7 +59,7 @@
                                         <th>Nama Produk</th>
                                         <th>Merk</th>
                                         <th>Via</th>
-                                        <th>Kategori</th>
+                                        <th>Sub Kategori</th>
                                         <th>Gambar</th>
                                         <th>Aksi</th>
                                     </tr>
@@ -71,7 +71,7 @@
                                             <td class="text-truncate" style="max-width: 150px;">{{ $produk->nama }}</td>
                                             <td class="text-truncate" style="max-width: 100px;">{{ $produk->merk }}</td>
                                             <td>{{ ucfirst($produk->via) }}</td>
-                                            <td>{{ $produk->kategori->nama }}</td>
+                                            <td>{{ $produk->subKategori->name }}</td>
                                             <td>
                                                 @foreach ($produk->images as $image)
                                                     <img src="{{ asset($image->gambar) }}" class="img-fluid w-100" alt="{{ $produk->nama }}" style="max-width: 250px; height: auto;">

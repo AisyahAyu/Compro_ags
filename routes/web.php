@@ -43,6 +43,7 @@
     use App\Http\Controllers\Distribution\Portal\ProformaInvoiceDistributorController;
     use App\Http\Controllers\Distribution\Portal\PurchaseOrderController;
     use App\Http\Controllers\Distribution\Profile\ProfileDistributorController;
+    use App\Http\Controllers\Member\ProductController;
 
     /*
     |--------------------------------------------------------------------------
@@ -59,6 +60,14 @@
         // Rute lainnya
         Route::get('/products', [ProdukMemberController::class, 'index'])->name('product.index');
         Route::get('/products/category/{id}', [ProdukMemberController::class, 'index'])->name('product.category');
+        // Route untuk kategori
+Route::get('/product/category/{id}', [ProductController::class, 'showCategory'])->name('member.product.category');
+
+// Route untuk bidang perusahaan (sub kategori)
+Route::get('/product/bidang/{id}', [ProductController::class, 'showBidangPerusahaan'])->name('member.product.bidang');
+// Route untuk detail produk
+Route::get('/product/detail/{id}', [ProductController::class, 'showProductDetail'])->name('member.product.detail');
+        // Route baru untuk subcategory menggunakan BidangPerusahaan
         Route::get('/product/{id}', [ProdukMemberController::class, 'show'])->name('product.show');
 
         Route::get('/products/filter/{id}', [ProdukMemberController::class, 'filterByCategory'])->name('filterByCategory');

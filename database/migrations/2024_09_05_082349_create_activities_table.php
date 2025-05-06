@@ -11,9 +11,13 @@ class CreateActivitiesTable extends Migration
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
             $table->string('image');
-            $table->date('date');
+            $table->unsignedSmallInteger('year');
             $table->string('title');
             $table->text('description');
+            $table->string('location'); 
+            $table->enum('status', ['akan datang', 'sudah terlaksana']);
+            $table->date('tanggal_mulai');
+            $table->date('tanggal_selesai');
             $table->timestamps();
         });
     }
@@ -23,4 +27,3 @@ class CreateActivitiesTable extends Migration
         Schema::dropIfExists('activities');
     }
 }
-

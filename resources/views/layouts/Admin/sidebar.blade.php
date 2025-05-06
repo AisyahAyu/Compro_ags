@@ -259,7 +259,7 @@
                         <ul class="nav nav-collapse">
                             <li>
                                 <a href="{{ route('bidangperusahaan.index') }}">
-                                    <span class="sub-item">Bidang Perusahaan</span>
+                                    <span class="sub-item">Sub Kategori</span>
                                 </a>
                             </li>
                             <li>

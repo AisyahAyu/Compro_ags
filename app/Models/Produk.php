@@ -13,7 +13,7 @@ class Produk extends Model
     protected $table = 'produk';
 
 
-    protected $fillable = ['nama', 'merk', 'tipe', 'link', 'via','kegunaan', 'deskripsi', 'spesifikasi', 'user_manual','kategori_id'];
+    protected $fillable = ['nama', 'merk', 'tipe', 'link', 'via','kegunaan', 'deskripsi', 'spesifikasi', 'user_manual', 'kategori_id', 'sub_kategori_id' ];
 
     public function images()
     {
@@ -27,7 +27,15 @@ class Produk extends Model
 
     public function kategori()
     {
-        return $this->belongsTo(Kategori::class);
+        return $this->belongsTo(Kategori::class, 'kategori_id');
+    }
+    
+    /**
+     * Mendapatkan bidang perusahaan (subkategori) yang terkait dengan produk ini.
+     */
+    public function subKategori()
+    {
+        return $this->belongsTo(BidangPerusahaan::class, 'sub_kategori_id');
     }
 
     public function produks()

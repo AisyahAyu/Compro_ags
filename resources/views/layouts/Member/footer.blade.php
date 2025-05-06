@@ -1,184 +1,208 @@
-@php
-    $compro = \App\Models\CompanyParameter::first();
-    $brand = \App\Models\BrandPartner::where('type', 'brand', 'nama')->get();
-@endphp
+<!-- Add Animation CSS in head section -->
+<style>
+    /* Animation Keyframes */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes dividerGlow {
+        0% {
+            background: linear-gradient(90deg, rgba(25, 108, 166, 0.1) 0%, rgba(25, 108, 166, 0.5) 50%, rgba(25, 108, 166, 0.1) 100%);
+            background-size: 200% 100%;
+            background-position: 0% 0%;
+        }
+        100% {
+            background: linear-gradient(90deg, rgba(25, 108, 166, 0.1) 0%, rgba(25, 108, 166, 0.5) 50%, rgba(25, 108, 166, 0.1) 100%);
+            background-size: 200% 100%;
+            background-position: 100% 0%;
+        }
+    }
+    
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+    
+    /* Animation Classes */
+    .footer-divider {
+        height: 2px;
+        background-color: rgba(230, 230, 230, 0.5);
+        margin-top: 20px;
+        margin-bottom: 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .footer-divider::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, rgba(25, 108, 166, 0.1) 0%, rgba(25, 108, 166, 0.5) 50%, rgba(25, 108, 166, 0.1) 100%);
+        background-size: 200% 100%;
+        animation: dividerGlow 3s ease-in-out infinite alternate;
+    }
+    
+    .footer-item {
+        animation: fadeInUp 0.8s ease-out forwards;
+        opacity: 0;
+    }
+    
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    
+    .footer-link {
+        position: relative;
+        color: #000;
+        text-decoration: none;
+        font-size: 16px;
+        transition: color 0.3s ease;
+    }
+    
+    .footer-link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 1px;
+        bottom: -2px;
+        left: 0;
+        background-color: #196CA6;
+        transition: width 0.3s ease;
+    }
+    
+    .footer-link:hover {
+        color: #196CA6;
+    }
+    
+    .footer-link:hover::after {
+        width: 100%;
+    }
+    
+    .social-icon {
+        transition: transform 0.3s ease, filter 0.3s ease;
+    }
+    
+    .social-icon-container:hover .social-icon {
+        transform: scale(1.15);
+    }
+    
+    .float-animation {
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    .float-animation-delay-1 {
+        animation-delay: 0.2s;
+    }
+    
+    .float-animation-delay-2 {
+        animation-delay: 0.4s;
+    }
+    
+    .float-animation-delay-3 {
+        animation-delay: 0.6s;
+    }
+    
+    .contact-link {
+        transition: color 0.3s ease, transform 0.3s ease;
+    }
+    
+    .contact-link:hover {
+        color: #196CA6 !important;
+        transform: translateX(3px);
+    }
+</style>
+
+<!-- Divider between content and footer -->
+<div class="container-fluid">
+    <hr style="height: 2px; background-color:rgb(#E6E6E6); opacity: 0.5; margin-top: 20px; margin-bottom: 0;">
+</div>
 
 <!-- Footer Start -->
-<div id="footer-section" class="container-fluid footer py-5 wow fadeIn" data-wow-delay="0.2s">
-    <div class="container py-5">
-        <div class="row g-5">
-            <div class="col-md-6 col-lg-6 col-xl-4">
-                <div class="footer-item d-flex flex-column">
-                    @guest
-                        <form action="{{ route('guest-messages.store') }}" method="POST" class="bg-light p-4 rounded">
-                            @csrf
-                            <h4 class="text-dark mb-4">{{ __('messages.leave_message') }}</h4>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="nama" class="form-label">{{ __('messages.full_name') }} <span
-                                                class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="nama" name="nama" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="email" class="form-label">{{ __('messages.email') }} <span
-                                                class="text-danger">*</span></label>
-                                        <input type="email" class="form-control" id="email" name="email" required>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="perusahaan" class="form-label">{{ __('messages.company') }}</label>
-                                        <input type="text" class="form-control" id="perusahaan" name="perusahaan">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="no_wa" class="form-label">{{ __('messages.phone') }} <span
-                                                class="text-danger">*</span></label>
-                                        <input type="tel" id="no_wa" name="no_wa" class="form-control" required
-                                            pattern="\d{10,12}"
-                                            title="Nomor WhatsApp harus terdiri dari 10 hingga 12 digit angka"
-                                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="12">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="pesan" class="form-label">{{ __('messages.your_message') }} <span
-                                        class="text-danger">*</span></label>
-                                <textarea class="form-control" id="pesan" name="pesan" rows="3" required></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">{{ __('messages.send_message') }}</button>
-                        </form>
-                    @endguest
-                    @auth
-                        <!-- Placeholder agar tata letak tetap rapi -->
-                        <div class="bg-light p-4 rounded d-flex justify-content-center align-items-center"
-                            style="height: 100%;">
-                            <p class="text-muted text-center m-0">{{ __('messages.form_not_available_logged_in') }}</p>
+<div id="footer-section" class="container-fluid py-5" style="background-color:rgba(32, 32, 32, 0); font-family: 'Work Sans', sans-serif;">
+    <div class="container py-4">
+        <div class="row">
+            <!-- Logo and Address Column -->
+            <div class="col-md-4">
+                <div class="footer-item">
+                    <img src="{{ asset('assets/img/AGS-logo.png') }}" alt="AGS Logo" style="height: 110px; margin-bottom: 3px;">
+                    <h5 class="mb-3" style="color: #196CA6; font-weight: bold; font-family: 'Work Sans', sans-serif;">PT. Arkamaya Guna Saharsa</h5>
+                    <p class="mb-1" style="color: #000; font-size: 14px;">Perkantoran Mitra Matraman</p>
+                    <p class="mb-1" style="color: #000; font-size: 14px;">Jl. Matraman Raya.148 Blok A2 No. 3, Kb. Manggis,</p>
+                    <p class="mb-4" style="color: #000; font-size: 14px;">Kec. Matraman, Daerah Khusus Ibukota Jakarta 13150.</p>
+                </div>
+            </div>
+            
+            <!-- Explore Column -->
+            <div class="col-md-4">
+                <div class="footer-item">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <img src="{{ asset('assets/icons/Icon Contact Information/5.png') }}" alt="Explore" style="width: 40px; height: 40px; margin-right: 10px;">
+                            <h4 style="color: #196CA6; font-weight: bold; font-size: 24px; margin-bottom: 0; font-family: 'Work Sans', sans-serif;">Explore</h4>
                         </div>
-                    @endauth
+                        <div class="ms-0 ps-0"> <!-- Removed padding/margin to align with heading -->
+                            <a href="{{ route('about') }}" class="d-block mb-2" style="color: #000; text-decoration: none; font-size: 16px; margin-left: 50px;">About Us</a>
+                            <a href="{{ route('activity') }}" class="d-block mb-2" style="color: #000; text-decoration: none; font-size: 16px; margin-left: 50px;">Our Activities</a>
+                            <a href="{{ route('product.index') }}" class="d-block mb-2" style="color: #000; text-decoration: none; font-size: 16px; margin-left: 50px;">Product</a>
+                            <a href="#" class="d-block mb-2" style="color: #000; text-decoration: none; font-size: 16px; margin-left: 50px;">E-Commerce</a>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-6 col-xl-2">
-                <div class="footer-item d-flex flex-column">
-                    <h4 class="mb-4 text-white">{{ __('messages.quick_access') }}</h4>
-                    <a href="{{ route('home') }}"><i class="fas fa-angle-right me-2"></i>
-                        {{ __('messages.home') }}</a>
-                    <a href="{{ route('about') }}"><i class="fas fa-angle-right me-2"></i>
-                        {{ __('messages.about_us') }}</a>
-                    <a href="{{ route('home') }}#merek-mitra"><i class="fas fa-angle-right me-2"></i>
-                        {{ __('messages.brands_partners') }}</a>
-                    <a href="{{ route('activity') }}"><i class="fas fa-angle-right me-2"></i>
-                        {{ __('messages.our_activity') }}</a>
+            
+            <!-- Contact Info Column -->
+            <div class="col-md-4">
+                <div class="footer-item">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <img src="{{ asset('assets/icons/Icon Contact Information/4.png') }}" alt="Contact Information" style="width: 40px; height: 40px; margin-right: 10px;">
+                            <h4 style="color: #196CA6; font-weight: bold; font-size: 24px; margin-bottom: 0; font-family: 'Work Sans', sans-serif;">Contact Information</h4>
+                        </div>
+                        <div class="ms-0 ps-0"> <!-- Removed padding/margin to align with heading -->
+                            <!-- WhatsApp -->
+                            <div class="d-flex align-items-center mb-2" style="margin-left: 50px;">
+                                <img src="{{ asset('assets/icons/Icon Contact Information/1.png') }}" alt="WhatsApp" style="width: 32px; height: 32px; margin-right: 10px;">
+                                <a href="https://wa.me/6285217911213" style="color: #000; text-decoration: none; font-size: 16px;">+62 852-1791-1213</a>
+                            </div>
+                            
+                            <!-- Phone -->
+                            <div class="d-flex align-items-center mb-2" style="margin-left: 50px;">
+                                <img src="{{ asset('assets/icons/Icon Contact Information/2.png') }}" alt="Phone" style="width: 32px; height: 32px; margin-right: 10px;">
+                                <a href="tel:02185850913" style="color: #000; text-decoration: none; font-size: 16px;">(021) 85850913</a>
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="d-flex align-items-center mb-3" style="margin-left: 50px;">
+                                <img src="{{ asset('assets/icons/Icon Contact Information/3.png') }}" alt="Email" style="width: 32px; height: 32px; margin-right: 10px;">
+                                <a href="mailto:Info@arkamaya-labs.com" style="color: #000; text-decoration: none; font-size: 16px;">Info@arkamaya-labs.com</a>
+                            </div>
+                            
+                            <!-- Social Media Icons -->
+                            <div class="d-flex" style="margin-left: 50px;">
+                                <a href="#" class="me-2"><img src="{{ asset('assets/icons/Asset Icon Social Media/Blue/2.png') }}" alt="LinkedIn" style="width: 32px; height: 32px;"></a>
+                                <a href="#" class="me-2"><img src="{{ asset('assets/icons/Asset Icon Social Media/Blue/3.png') }}" alt="Instagram" style="width: 32px; height: 32px;"></a>
+                                <a href="#" class="me-2"><img src="{{ asset('assets/icons/Asset Icon Social Media/Blue/4.png') }}" alt="TikTok" style="width: 32px; height: 32px;"></a>
+                                <a href="#"><img src="{{ asset('assets/icons/Asset Icon Social Media/Blue/5.png') }}" alt="YouTube" style="width: 32px; height: 32px;"></a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-6 col-xl-2">
-                <div class="footer-item d-flex flex-column">
-                    <h4 class="mb-4 text-white">{{ __('messages.find_products') }}</h4>
-                    <a href="{{ route('product.index') }}"><i class="fas fa-angle-right me-2"></i>
-                        {{ __('messages.our_products') }}</a>
-                    <a href="{{ route('portal') }}"><i class="fas fa-angle-right me-2"></i>
-                        {{ __('messages.member_portal') }}</a>
-                    @if ($brand->isNotEmpty())
-                        @foreach ($brand as $singleBrand)
-                            <a href="{{ strpos($singleBrand->url, 'http://') === 0 || strpos($singleBrand->url, 'https://') === 0 ? $singleBrand->url : 'http://' . $singleBrand->url }}"
-                                target="_blank" class="d-block">
-                                <i class="fas fa-angle-right me-2"></i> {{ $singleBrand->nama }}
-                            </a>
-                        @endforeach
-                    @endif
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-6 col-xl-4">
-                <div class="footer-item d-flex flex-column">
-                    <h4 class="mb-4 text-white">{{ __('messages.contact_info') }}</h4>
-
-                    <!-- Address -->
-                    @if (!empty($compro->alamat))
-                        <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($compro->alamat) }}"
-                            target="_blank">
-                            <i class="fa fa-map-marker-alt me-2"></i> {{ $compro->alamat }}
-                        </a>
-                    @else
-                        <p>
-                            <i class="fa fa-map-marker-alt me-2"></i> {{ __('messages.address_not_available') }}
-                        </p>
-                    @endif
-
-
-                    <!-- Email -->
-                    @if (!empty($compro->email))
-                        <a href="mailto:{{ $compro->email }}"><i class="fas fa-envelope me-2"></i>
-                            {{ $compro->email }}</a>
-                    @else
-                        <p><i class="fas fa-envelope me-2"></i> {{ __('messages.email_not_available') }}</p>
-                    @endif
-
-                    <!-- Phone Number -->
-                    @if (!empty($compro->no_telepon))
-                        <a href="tel:{{ $compro->no_telepon }}"><i class="fas fa-phone me-2"></i>
-                            {{ $compro->no_telepon }}</a>
-                    @else
-                        <p><i class="fas fa-phone me-2"></i> {{ __('messages.phone_not_available') }}</p>
-                    @endif
-
-                    <!-- WhatsApp -->
-                    @if (!empty($compro->no_wa))
-                        <a href="https://wa.me/{{ preg_replace('/\D/', '', $compro->no_wa) }}" class="mb-3">
-                            <i class="fab fa-whatsapp fa-2x"></i> {{ $compro->no_wa }}
-                        </a>
-                    @else
-                        <p><i class="fab fa-whatsapp fa-2x"></i> {{ __('messages.whatsapp_not_available') }}</p>
-                    @endif
-                </div>
-            </div>
-
         </div>
     </div>
 </div>
 <!-- Footer End -->
-
-<!-- Copyright Start -->
-<div class="container-fluid copyright py-4">
-    <div class="container">
-        <div class="row g-4 align-items-center">
-            <div class="col-md-12 text-center mb-md-0">
-                <span class="text-white"><a href="#">2024 <i
-                            class="fas fa-copyright text-light me-2"></i></a>PT ARKAMAYA GUNA SAHARSA</span>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Copyright End -->
-
-<!-- Back to Top -->
-<a href="#" class="btn btn-primary btn-lg-square back-to-top" style="display: none;"><i
-        class="fa fa-arrow-up"></i></a>
-
-<!-- JavaScript Libraries -->
-{{-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script> --}}
-<script src="{{ asset('assets/lib/wow/wow.min.js') }}"></script>
-<script src="{{ asset('assets/lib/easing/easing.min.js') }}"></script>
-<script src="{{ asset('assets/lib/waypoints/waypoints.min.js') }}"></script>
-<script src="{{ asset('assets/lib/owlcarousel/owl.carousel.min.js') }}"></script>
-<script src="{{ asset('assets/js/main.js') }}"></script>
-
-{{-- script semua member/distri --}}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-{{-- <script src="{{ asset('assets/lib/jquery/jqueery-3.6.0.min.js') }}"></script>
-<script src="{{ asset('assets/lib/popper/popper.min.js') }}"></script>
-<script src="{{ asset('assets/lib/bundle/bundle.min.js') }}"></script> --}}
-
-
-</body>
-
-</html>

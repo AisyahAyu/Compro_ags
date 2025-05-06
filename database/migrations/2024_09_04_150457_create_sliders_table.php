@@ -15,10 +15,17 @@ return new class extends Migration
             $table->id();
             $table->string('image_url');
             $table->string('title');
-            $table->string('subtitle');
             $table->text('description');
-            $table->string('button_text');
-            $table->string('button_url');
+            $table->string('title_color')->nullable();
+            $table->string('description_color')->nullable();
+            $table->boolean('show_specification')->default(false);
+            $table->text('specification_text')->nullable();
+            $table->string('line_color')->nullable();
+            $table->string('specification_color')->nullable();
+            $table->boolean('show_button')->default(false);
+            $table->string('button_text')->nullable();
+            $table->string('button_url')->nullable();
+            $table->string('button_text_color')->nullable();
             $table->timestamps();
         });
     }

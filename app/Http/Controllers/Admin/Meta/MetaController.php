@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Meta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 
 class MetaController extends Controller
 {
@@ -35,20 +36,24 @@ class MetaController extends Controller
     public function destroy($id)
     {
         $meta = Meta::findOrFail($id);
+        
+        // Delete the associated image if it exists
+        if ($meta->image && File::exists(public_path('assets/img/konten/' . $meta->image))) {
+            File::delete(public_path('assets/img/konten/' . $meta->image));
+        }
+        
         $meta->delete();
     
         return redirect()->route('admin.meta.index')->with('success', 'Meta deleted successfully.');
     }
     
-
     public function store(Request $request)
     {
         $request->validate([
             'title' => 'required',
-            'content' => 'required',
             'start_date' => 'required|date',
             'end_date' => 'required|date',
-            'type' => 'required|in:pengumuman,promosi', // Validasi ENUM
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Max 5MB
         ]);
     
         $slug = Str::slug($request->title, '-');
@@ -60,27 +65,41 @@ class MetaController extends Controller
             $slug = $originalSlug . '-' . $count;
             $count++;
         }
+
+        // Handle image upload
+        $imageName = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . Str::random(5) . '_' . $image->getClientOriginalName();
+            
+            // Create directory if it doesn't exist
+            $targetDir = public_path('assets/img/konten');
+            if (!File::isDirectory($targetDir)) {
+                File::makeDirectory($targetDir, 0755, true);
+            }
+            
+            // Move the uploaded file to the target directory
+            $image->move($targetDir, $imageName);
+        }
     
         Meta::create([
             'title' => $request->title,
             'slug' => $slug,
-            'content' => $request->content,
+            'image' => $imageName,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'type' => $request->type, // Simpan tipe
         ]);
     
-        return redirect()->route('admin.meta.index');
+        return redirect()->route('admin.meta.index')->with('success', 'Meta created successfully.');
     }
     
-
     public function update(Request $request, $id)
     {
         $request->validate([
             'title' => 'required',
             'start_date' => 'required|date',
             'end_date' => 'required|date',
-            'type' => 'required|in:pengumuman,promosi', // Validasi ENUM
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Max 5MB
         ]);
     
         $meta = Meta::findOrFail($id);
@@ -100,42 +119,74 @@ class MetaController extends Controller
             // Keep the old slug if the title hasn't changed
             $slug = $meta->slug;
         }
-    
-        // Check if the content is empty
-        $content = $request->content ? $request->content : $meta->content;
+
+        // Handle image upload
+        $imageName = $meta->image; // Keep old image by default
+        if ($request->hasFile('image')) {
+            // Delete old image if it exists
+            if ($meta->image && File::exists(public_path('assets/img/konten/' . $meta->image))) {
+                File::delete(public_path('assets/img/konten/' . $meta->image));
+            }
+            
+            // Upload new image
+            $image = $request->file('image');
+            $imageName = time() . '_' . Str::random(5) . '_' . $image->getClientOriginalName();
+            
+            // Create directory if it doesn't exist
+            $targetDir = public_path('assets/img/konten');
+            if (!File::isDirectory($targetDir)) {
+                File::makeDirectory($targetDir, 0755, true);
+            }
+            
+            // Move the uploaded file to the target directory
+            $image->move($targetDir, $imageName);
+        }
     
         // Update the meta with the new data
         $meta->update([
             'title' => $request->title,
             'slug' => $slug,
-            'content' => $content, // Keep old content if the content is not changed
+            'image' => $imageName,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'type' => $request->type, // Simpan tipe
-
         ]);
     
         return redirect()->route('admin.meta.index')->with('success', 'Meta updated successfully.');
     }
-
+    
     public function uploadImage(Request $request)
-{
-    if ($request->hasFile('file')) {
-        $file = $request->file('file');
-        $filename = time() . '_' . $file->getClientOriginalName();
-        $path = $file->storeAs('public/images', $filename);
-
-        // Mengembalikan URL gambar yang sudah diupload
-        return response()->json([
-            'link' => asset('storage/images/' . $filename)
+    {
+        // Validate the uploaded file
+        $request->validate([
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120', // Max 5MB
         ]);
+
+        if ($request->hasFile('file')) {
+            // Get the file from the request
+            $image = $request->file('file');
+            
+            // Create a unique filename
+            $filename = time() . '_' . Str::random(5) . '_' . $image->getClientOriginalName();
+            
+            // Specify the target directory path (using absolute path from your configuration)
+            $targetDir = public_path('assets/img/konten');
+            
+            // Create directory if it doesn't exist
+            if (!File::isDirectory($targetDir)) {
+                File::makeDirectory($targetDir, 0755, true);
+            }
+            
+            // Move the uploaded file to the target directory
+            $image->move($targetDir, $filename);
+            
+            // Return the image URL needed by editor (if using one like Froala, CKEditor, etc.)
+            return response()->json([
+                'link' => asset('assets/img/konten/' . $filename)
+            ]);
+        }
+        
+        return response()->json([
+            'error' => 'No file uploaded'
+        ], 400);
     }
-    return response()->json(['error' => 'File upload failed.'], 500);
-}
-
-    
-    
-    
-
-
 }

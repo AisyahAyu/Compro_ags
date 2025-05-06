@@ -32,30 +32,39 @@ class HomeController extends Controller
     {
         $produks = Produk::take(6)->get();
         $sliders = Slider::all();
-        $company = CompanyParameter::first(); // Single object, not a collection
-        $brand = BrandPartner::where('type', 'brand')->get();
-        $partners = BrandPartner::where('type', 'partner')->get();
+        $company = CompanyParameter::first();
+        
+        // Mengambil tipe brand partner yang valid dari database
+        $brands = BrandPartner::where('type', 'brand')->get();
+        $ecommerces = BrandPartner::where('type', 'ecommerce')->get();
         $principals = BrandPartner::where('type', 'principal')->get();
-
+        $distributors = BrandPartner::where('type', 'distributor')->get();
+        
+        $categories = Kategori::all();
+        
         $locale = app()->getLocale();
-
-        // Terjemahkan nama produk
+        
         foreach ($sliders as $slider) {
             $slider->title = TranslateHelper::translate($slider->title, $locale);
             $slider->button_text = TranslateHelper::translate($slider->button_text, $locale);
             $slider->description = TranslateHelper::translate($slider->description, $locale);
         }
-
+        
         if ($company) {
             $company->sejarah_singkat = TranslateHelper::translate($company->sejarah_singkat, $locale);
         }
-        // dd($sliders);
-        return view('home', compact('produks', 'sliders', 'company', 'brand', 'partners', 'principals'));
+        
+        return view('home', compact(
+            'produks', 
+            'sliders', 
+            'company', 
+            'brands', 
+            'principals', 
+            'categories', 
+            'ecommerces',
+            'distributors'
+        ));
     }
-
-
-
-
 
     public function dashboard()
     {
@@ -69,45 +78,59 @@ class HomeController extends Controller
         $dates = $visitorData->pluck('date')->toArray();
         $visits = $visitorData->pluck('total_visits')->toArray();
 
-        $totalMembers = User::where('type', 'member')->count(); // Count users with type 'member'
-        $totalProducts = Produk::count(); // Assuming Product model
-        $totalMonitoredProducts = Monitoring::count(); // Assuming Monitoring model
-        $totalActivities = Activity::count(); // Assuming Activity model
-        $totalTickets = AfterSales::count(); // Atau sesuaikan logika perhitungan
+        $totalMembers = User::where('type', 'member')->count();
+        $totalProducts = Produk::count();
+        $totalMonitoredProducts = Monitoring::count();
+        $totalActivities = Activity::count();
+        $totalTickets = AfterSales::count();
         $totalDistributors = User::where('type', 2)->count();
 
+        // Menghitung total untuk setiap jenis brand partner
+        $totalBrands = BrandPartner::where('type', 'brand')->count();
+        $totalEcommerces = BrandPartner::where('type', 'ecommerce')->count();
+        $totalPrincipals = BrandPartner::where('type', 'principal')->count();
+        $totalDistributorPartners = BrandPartner::where('type', 'distributor')->count();
 
-
-
-
-        // Return the view with data
-        return view('dashboard', compact('dates', 'visits', 'totalMembers', 'totalProducts', 'totalMonitoredProducts', 'totalActivities', 'totalTickets', 'totalDistributors'));
+        return view('dashboard', compact(
+            'dates', 
+            'visits', 
+            'totalMembers', 
+            'totalProducts', 
+            'totalMonitoredProducts', 
+            'totalActivities', 
+            'totalTickets', 
+            'totalDistributors',
+            'totalBrands',
+            'totalEcommerces',
+            'totalPrincipals',
+            'totalDistributorPartners'
+        ));
     }
 
     public function about()
     {
         $company = CompanyParameter::first();
-        $brand = BrandPartner::where('type', 'brand')->get();
-        $partners = BrandPartner::where('type', 'partner')->get();  // Filter by 'partner'
-        $principals = BrandPartner::where('type', 'principal')->get();  // Filter by 'principal'
+        
+        // Mengambil tipe brand partner yang valid untuk halaman about
+        $brands = BrandPartner::where('type', 'brand')->get();
+        $principals = BrandPartner::where('type', 'principal')->get();
+        $distributors = BrandPartner::where('type', 'distributor')->get();
+        $ecommerces = BrandPartner::where('type', 'ecommerce')->get();
 
         $locale = app()->getLocale();
 
         if ($company) {
             $company->sejarah_singkat = TranslateHelper::translate($company->sejarah_singkat, $locale);
-        }
-
-        if ($company) {
             $company->visi = TranslateHelper::translate($company->visi, $locale);
-        }
-
-        if ($company) {
             $company->misi = TranslateHelper::translate($company->misi, $locale);
         }
 
-        return view('Member.About.about', compact('company','brand', 'partners', 'principals'));
+        return view('Member.About.about', compact(
+            'company', 
+            'brands', 
+            'principals',
+            'distributors',
+            'ecommerces'
+        ));
     }
-
-
-
 }
